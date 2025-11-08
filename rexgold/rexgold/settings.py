@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'Product_Data_Module',
     'Price_Mnage_Module',
     'Order_Module',
+    'DocumentManag_Module',
 
 ]
 

@@ -9,7 +9,7 @@ from .models import Payment, Order
 class OrderAdmin(admin.ModelAdmin):
     # فیلدهایی که در لیست ادمین نمایش داده می‌شوند
     list_display = (
-        'factor_number', 
+        'factor_number',
         'get_type_of_deal_display', # نمایش نام کامل (خرید/فروش)
         'price', 
         'user', 
