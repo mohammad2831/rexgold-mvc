@@ -20,6 +20,8 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 # Application definition
 
+AUTH_USER_MODEL = 'Account_Module.User'  # یا هر ماژولی که User شما توش هست
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -30,7 +32,11 @@ INSTALLED_APPS = [
 
     # tools
     'drf_spectacular',
-
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist', 
+    'django_redis',
+    #'django-redis',
 
     # internal apps
     'Account_Module',
@@ -140,6 +146,29 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 
+
+ONLINE_TIMEOUT_SECONDS = 15 * 60 # 900 ثانیه (15 دقیقه)
+USER_ONLINE_KEY_PREFIX = "online_user_"
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",  # localhost:6379، دیتابیس 1
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+        "KEY_PREFIX": "mykey:",  # اختیاری - اگر بخواهید پیشوند اضافه کنید (توصیه: فعلاً حذف کنید)
+    }
+}
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {"hosts": [("127.0.0.1", 6379)]},
+    }
+}
+
+
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         # 'rest_framework.authentication.TokenAuthentication',
@@ -161,7 +190,6 @@ SPECTACULAR_SETTINGS = {
     'SERVE_INCLUDE_SCHEMA': False,
 
 }
-
 
 
 SIMPLE_JWT = {

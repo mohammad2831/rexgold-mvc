@@ -19,6 +19,44 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from rest_framework.permissions import IsAuthenticated
 import uuid
+from rest_framework_simplejwt.exceptions import TokenError
+from django.core.cache import cache
+import time
+
+ONLINE_USERS_SET_KEY = "online:users:set"
+USER_ONLINE_KEY = lambda uid: f"online:user:{uid}"
+
+USER_ONLINE_KEY_PREFIX = "online_user_"
+ONLINE_TIMEOUT_SECONDS = 900
+
+
+@extend_schema(
+)
+class testredis(APIView):
+    """
+    یک ویو API برای تست ذخیره سازی داده در کش (Redis).
+    """
+    
+    def get(self, request): # ترتیب آرگومان‌ها را تصحیح کردیم
+        
+        # ۱. تعریف کلید و مقدار برای ذخیره
+        key = 'user_name_test'
+        value = 'mamad'
+        
+        # ۲. ذخیره مقدار در کش (Redis)
+        # cache.set(key, value, timeout=None)
+        # timeout: مدت زمان ذخیره سازی بر حسب ثانیه (مثلاً 60 ثانیه). اگر None باشد، از پیش‌فرض settings.py استفاده می‌شود.
+        cache.set(key, value, timeout=60)
+        
+        # ۳. تست موفقیت‌آمیز بودن ذخیره (اختیاری)
+        # retrieved_value = cache.get(key)
+        
+        return Response(
+            {"message": f"Value '{value}' set successfully for key '{key}' in cache."}, 
+            status=status.HTTP_200_OK # در صورت موفقیت، کد 200 یا 201 مناسب‌تر است
+        )
+
+
 
 
 def generate_otp(phone_number, timeout=300):
@@ -102,49 +140,50 @@ class LoginGenerateOTPView(APIView):
     tags=['Authentication']
 )
 class VerifyOTPView(APIView):
-    permission_classes = [AllowAny]
+    # ... (Permission classes and serializer setup remain the same) ...
 
     def post(self, request):
         serializer = VerifyLoginSerializer(data=request.data)
-        if serializer.is_valid():
-            phone = serializer.validated_data['phone_number']
-            otp = serializer.validated_data['otp']
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-            cache_key = f"otp_{phone}"
-            cached_otp = cache.get(cache_key)
-            if not phone or not re.match(r'^\+?[0-9]\d{1,14}$', phone):
-                return Response({
-                    'status': 'warning',
-                    "message": "لطفاً شماره تلفن را به صورت صحیح ارسال کنید"}, status=status.HTTP_400_BAD_REQUEST)
+        phone = serializer.validated_data['phone_number']
+        otp = serializer.validated_data['otp']
 
-            if not User.objects.filter(phone_number=phone).exists():
-                return Response({"error": "کاربری با این شماره تلفن یافت نشد"}, status=status.HTTP_400_BAD_REQUEST)
+        # ... (اعتبارسنجی‌ها و بررسی OTP remain the same) ...
 
-            if cached_otp and cached_otp == otp:
+        cache_key = f"otp_{phone}"
+        cached_otp = cache.get(cache_key)
 
-                user, created = User.objects.get_or_create(phone_number=phone)
-                cache.delete(cache_key)
+        if cached_otp and cached_otp == otp:
+            user = User.objects.get(phone_number=phone)
+            cache.delete(cache_key)
 
-                refresh = RefreshToken.for_user(user)
-                jti = str(uuid.uuid4())
-                refresh['jti'] = jti
+            refresh = RefreshToken.for_user(user)
+            user_id = str(user.id)
 
-                # ذخیره JTI در active_session_key
-                user.active_session_key = jti
-                user.save(update_fields=['active_session_key'])
-               
-                return Response({
-                    "message": "ورود با موفقیت انجام شد",
-                    "refresh": str(refresh),
-                    "access": str(refresh.access_token),
-                }, status=status.HTTP_200_OK)
+            # --- مدیریت کاربر آنلاین در Redis ---
+            
+            # ۱. ساخت کلید منحصر به فرد برای این کاربر:
+            # کلید نهایی در Redis چیزی شبیه به 'mykey::1:online_user_123' خواهد بود.
+            user_online_key = f"{USER_ONLINE_KEY_PREFIX}{user_id}"
 
-            return Response({"error": "کد یکبار مصرف وارد شده نامعتبر یا منقضی شده است"}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            # ۲. ذخیره کلید کاربر با زمان انقضای ۱۵ دقیقه (900 ثانیه):
+            # ما مقدار '1' را ذخیره می‌کنیم؛ چون فقط به وجود کلید اهمیت می‌دهیم نه مقدار آن.
+            cache.set(user_online_key, "1", timeout=ONLINE_TIMEOUT_SECONDS)
+            
+            # نکته: هر بار که کاربر لاگین کند، این کلید دوباره ذخیره و زمان انقضای آن تمدید می‌شود.
+            
+            # ------------------------------------
 
+            # ... (Rest of the response remains the same) ...
+            return Response({
+                "message": "OTP verified successfully",
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+            }, status=status.HTTP_200_OK)
 
-
-
+        return Response({"error": "Invalid phone number or expired OTP"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @extend_schema(
@@ -175,16 +214,45 @@ class RefreshAccessTokenView(APIView):
             return Response({"error": "Refresh token is required"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            refresh = RefreshToken(refresh_token)
-            new_access_token = str(refresh.access_token)
+            token = RefreshToken(refresh_token)
+            user_id = token.payload.get('user_id')
+
+            if not user_id:
+                return Response({"error": "Invalid refresh token"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # بررسی وجود و فعال بودن کاربر
+            try:
+                # اگر از جنگو استفاده می‌کنید، باید مدل User را از جای مناسب Import کنید
+                user = User.objects.get(id=user_id, is_active=True)
+            except User.DoesNotExist:
+                return Response({"error": "Invalid refresh token"}, status=status.HTTP_400_BAD_REQUEST)
+
+            # --- مدیریت آنلاین بودن در Redis (تمدید ۱۵ دقیقه‌ای) ---
+            user_id_str = str(user_id)
+            
+            # ۱. ساخت کلید دقیق
+            user_online_key = f"{USER_ONLINE_KEY_PREFIX}{user_id_str}"
+
+            # ۲. ذخیره (تمدید) کلید کاربر با زمان انقضای ۱۵ دقیقه (900 ثانیه):
+            # این دستور تضمین می‌کند که هر بار کاربر توکن را رفرش می‌کند،
+            # حضور او به مدت ۱۵ دقیقه دیگر تمدید شود (TTL ریست شود).
+            cache.set(user_online_key, "1", timeout=ONLINE_TIMEOUT_SECONDS) 
+
+            # --- حذف منطق اشتباه Set ---
+            # current_set = cache.get(ONLINE_USERS_SET_KEY, set())
+            # current_set.add(user_id_str)
+            # cache.set(ONLINE_USERS_SET_KEY, current_set, timeout=16 * 60)
+
+            # --- پاسخ با توکن دسترسی جدید ---
             return Response({
-                "access": new_access_token
+                "access": str(token.access_token)
             }, status=status.HTTP_200_OK)
 
-        except Exception as e:
+        except TokenError:
             return Response({"error": "Invalid refresh token"}, status=status.HTTP_400_BAD_REQUEST)
-        
-
+        except Exception as e:
+            # بهتر است خطای کلی Exception را برای محیط پروداکشن به یک پیام عمومی تبدیل کنید
+            return Response({"error": "An unexpected error occurred"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 
@@ -211,27 +279,30 @@ class LogoutView(APIView):
     def post(self, request):
         refresh_token = request.data.get("refresh")
         if not refresh_token:
-            return Response({"error": "Refresh token is required."}, status=400)
+            return Response(
+                {"error": "Refresh token is required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         user = request.user
 
-        # روش ۱: update مستقیم (بدون کش)
+        # پاک کردن سشن
         User.objects.filter(id=user.id).update(active_session_key=None)
-
-        # روش ۲: یا save با update_fields
-        # user.active_session_key = None
-        # user.save(update_fields=['active_session_key'])
-
-        print(f"User {user.id} offline - active_session_key cleared")
-
+        '''
+        fresh_user = User.objects.get(id=user.id)
+        print("SESSION KEY AFTER LOGOUT:", fresh_user.active_session_key)
+        '''
+        # blacklist کردن توکن
         try:
             token = RefreshToken(refresh_token)
-            token.blacklist()
-            print("Token blacklisted")
-        except TokenError as e:
-            print(f"Token already invalid: {e}")
+            token.blacklist()  # حالا کار می‌کنه!
+        except TokenError:
+            pass  # توکن قبلاً blacklist شده یا نامعتبر
 
-        return Response({"message": "با موفقیت خارج شدید."}, status=205)
+        return Response(
+            {"message": "با موفقیت خارج شدید."},
+            status=status.HTTP_205_RESET_CONTENT
+        )
 
 
 

@@ -7,6 +7,12 @@ from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework_simplejwt.exceptions import TokenError
 from django.utils import timezone
 from datetime import timedelta
+from django.core.cache import cache
+USER_ONLINE_KEY_PREFIX = "online_user_"
+KEY_PREFIX = "mykey::1:"
+
+
+ONLINE_USERS_SET_KEY = "online:users:set"
 
 
 class AdminGetProfitUserViewSerializer(serializers.ModelSerializer):
@@ -337,16 +343,63 @@ class AdminDetailUserViewSerializer(serializers.ModelSerializer):
                   ]
 
 
+
 class AdminListUserViewSerializer(serializers.ModelSerializer):
     is_online = serializers.SerializerMethodField()
     group_name = serializers.CharField(source='group.name', read_only=True, default='-')
 
     class Meta:
-        model = User
-        fields = ['id', 'username', 'phone_number', 'user_type', 'group', 'group_name', 'is_online','request_status', 'is_active','request_status']
+        model = User  # <-- باید این خط را اضافه کنید
+        fields = [
+            'id', 'username', 'phone_number', 'user_type',
+            'group', 'group_name', 'is_online',
+            'request_status', 'is_active'
+        ]
+    # --- ۱. واکشی کلیدها قبل از شروع سریالایزر ---
+    def to_representation(self, instance):
+        
+        # اگر این لیست هنوز در 'context' نباشد، آن را واکشی می‌کنیم
+        if 'online_user_ids_set' not in self.context:
+            
+            # دسترسی به کلاینت Redis خام (برای استفاده از دستور KEYS)
+            redis_client = cache.client.get_client(None) 
+            
+            # ساخت الگوی جستجوی کامل با پیشوند ثابت شما
+            # نکته: ما از 'mykey::1:' در اینجا فرض کردیم که در تنظیمات KEY_PREFIX استفاده شده
+            search_pattern = f"{self.context.get('KEY_PREFIX', 'mykey::1:')}{USER_ONLINE_KEY_PREFIX}*"
 
+            # اجرای دستور KEYS
+            # خروجی: لیستی از بایت‌ها (مثلاً [b'mykey::1:online_user_123', ...])
+            full_keys = redis_client.keys(search_pattern) 
+            
+            online_ids = set()
+            
+            # استخراج ID کاربر
+            online_prefix = f"{self.context.get('KEY_PREFIX', 'mykey::1:')}{USER_ONLINE_KEY_PREFIX}"
+
+            for full_key_bytes in full_keys:
+                full_key_str = full_key_bytes.decode('utf-8')
+                
+                # حذف پیشوند کامل برای استخراج ID
+                if full_key_str.startswith(online_prefix):
+                    user_id = full_key_str[len(online_prefix):]
+                    online_ids.add(user_id)
+
+            # ذخیره Set آیدی‌ها در Context برای استفاده‌های بعدی (cache کردن در حین سریالایز کردن)
+            self.context['online_user_ids_set'] = online_ids
+            
+        return super().to_representation(instance)
+
+    # --- ۲. استفاده از لیست واکشی شده ---
     def get_is_online(self, obj):
-        return obj.active_session_key is not None
+        """
+        بررسی آنلاین بودن کاربر با استفاده از لیست ذخیره شده در Context
+        """
+        # آیدی‌های واکشی شده از Redis را از Context می‌خوانیم.
+        online_user_ids_set = self.context.get('online_user_ids_set', set())
+        
+        # بررسی می‌کنیم که آیا ID کاربر فعلی در آن Set وجود دارد یا خیر.
+        return str(obj.id) in online_user_ids_set
 
 
 class AdminUpdateUserViewSerializer(serializers.ModelSerializer):

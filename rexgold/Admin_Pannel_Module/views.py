@@ -35,6 +35,100 @@ from drf_spectacular.types import OpenApiTypes
 from Account_Module.models import User, UserGroup
 logger = logging.getLogger(__name__)
 
+
+
+
+
+@extend_schema(
+    tags=['Admin Pannel (user)'],
+    parameters=[
+        # جستجوی ترکیبی
+        OpenApiParameter(
+            name='search',
+            type=OpenApiTypes.STR,
+            location=OpenApiParameter.QUERY,
+            description='جستجو در نام کاربری و شماره تلفن',
+            required=False,
+        ),
+        # نوع کاربر
+        OpenApiParameter(
+            name='user_type',
+            type=OpenApiTypes.STR,
+            location=OpenApiParameter.QUERY,
+            description='دسته‌بندی کاربر',
+            enum=[choice[0] for choice in User.TYPE_CHOICES2],
+            required=False,
+        ),
+        # وضعیت درخواست
+        OpenApiParameter(
+            name='request_status',
+            type=OpenApiTypes.STR,
+            location=OpenApiParameter.QUERY,
+            description='وضعیت درخواست کاربر',
+            enum=[choice[0] for choice in User.TYPE_CHOICES],
+            required=False,
+        ),
+        # آنلاین/آفلاین
+        OpenApiParameter(
+            name='is_online',
+            type=OpenApiTypes.BOOL,
+            location=OpenApiParameter.QUERY,
+            description='آنلاین بودن کاربر',
+            required=False,
+        ),
+        # فعال/غیرفعال
+        OpenApiParameter(
+            name='status',
+            type=OpenApiTypes.BOOL,
+            location=OpenApiParameter.QUERY,
+            description='فعال/غیرفعال بودن حساب',
+            required=False,
+        ),
+    ]
+)
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = AdminListUserViewSerializer
+    #permission_classes = [IsAdminUser]  # فقط ادمین‌ها دسترسی داشته باشن
+    filter_backends = [DjangoFilterBackend] 
+    filterset_class = UserFilter
+
+
+    def get_queryset(self):
+        # فقط فیلدهای لازم رو بگیر
+        return super().get_queryset().only(
+            'id', 'username', 'phone_number', 'active_session_key',
+            'user_type', 'group__name', 'user_status', 'request_status'
+        )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#profit user
 @extend_schema(
         tags=['Admin Pannel (profit user)'],
         request = AdminAddProfitUserViewSerializer
@@ -129,7 +223,7 @@ class AdminGetLastProfitUserView(APIView):
 
 
 
-
+#profit user group
 @extend_schema(
         tags=['Admin Pannel (profit user group)'],
 )
@@ -222,6 +316,9 @@ class AdmiAddProfitUserGroupView(APIView):
 
 
 
+
+
+#profit all
 @extend_schema(
         tags=['Admin Pannel (profit all)'],
     )
@@ -243,7 +340,6 @@ class AdminGetLastProfitAllView(APIView):
             "message": "آخرین تنظیمات با موفقیت دریافت شد.",
             "data": serializer.data
         }, status=status.HTTP_200_OK)
-
 
 
 
@@ -372,8 +468,6 @@ class AdminUpdateCategoryView(APIView):
 
 
 #user
-
-
 
 @extend_schema(
         request=AdminAddUserViewSerializer,
@@ -521,11 +615,11 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
     def get_queryset(self):
-        # فقط فیلدهای لازم رو بگیر
         return super().get_queryset().only(
-            'id', 'username', 'phone_number', 'active_session_key',
-            'user_type', 'group__name', 'user_status', 'request_status'
-        )
+        'id',  # حتماً باید باشد
+        'username', 'phone_number',
+        'user_type', 'group__name', 'request_status', 'is_active'
+    )
 
 
 

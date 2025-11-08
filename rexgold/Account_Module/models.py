@@ -43,7 +43,6 @@ class User(AbstractUser):
         ('واگذاری وثیقه', 'واگذاری وثیقه'),
         ('تأیید شده', 'تأیید شده'),
     )
-
     TYPE_CHOICES2 = (
         ('1', 'بنکداران (بازار)'),
         ('2', 'همکار'),
@@ -58,17 +57,15 @@ class User(AbstractUser):
         ('11', 'سرمایه'),
         ('12', 'کارمندان'),
     )
-
     TYPE_CHOICES3 = (
         ('user', 'کاربر معمولی '),
         ('employee', 'کارمند '),
         ('admin', 'ادمین'),
     )
 
-
     active_session_key = models.CharField(max_length=40, null=True, blank=True, db_index=True)
     phone_number = models.CharField(max_length=11, unique=True, blank=True, null=True)
-    request_status = models.CharField(choices=TYPE_CHOICES, max_length=100, default=TYPE_CHOICES[0][0] )
+    request_status = models.CharField(choices=TYPE_CHOICES, max_length=100, default=TYPE_CHOICES[0][0])
     invited_by = models.ForeignKey('User', on_delete=models.SET_NULL, null=True, blank=True)
     image_profile = models.ImageField(upload_to='images/', null=True, blank=True)
     guarantee_amount = models.PositiveBigIntegerField(null=True, blank=True)
@@ -81,36 +78,32 @@ class User(AbstractUser):
     shomare_hesab = models.PositiveBigIntegerField(null=True, blank=True)
     tah_hesab_user_id = models.PositiveBigIntegerField(null=True, blank=True)
     can_invite = models.BooleanField(default=False)
-
-
-
-
+    #gold_limit = models.PositiveSmallIntegerField(null=True, blank=True)
+    #price_limit = models.FloatField(null=True, blank=True)
+    #sell_limit = models.FloatField(null=True, blank=True)
+    # user_page_permissions = models.ManyToManyField(UserPermission, blank=True)  # اگر دارید
     rasteh = models.PositiveBigIntegerField(null=True, blank=True)
     city = models.TextField(null=True, blank=True)
     birth_date = models.CharField(max_length=200, null=True, blank=True)
-
-    is_active = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
     max_gold_debt_amount = models.BigIntegerField(default=0)
-
     group = models.ForeignKey(
-        UserGroup,
+        'UserGroup',  # یا Admin_Pannel_Module.UserGroup
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='members' 
+        related_name='members'
     )
 
-    REQUIRED_FIELDS = [
-        'phone_number'
-    ]
+    # --- مهم: REQUIRED_FIELDS مثل پروژه قبلی ---
+    REQUIRED_FIELDS = ['phone_number']
 
+    # --- متد save دقیقاً مثل پروژه قبلی ---
     def save(self, *args, **kwargs):
         is_new = self.pk is None
         if is_new and not self.invite_code:
-
             while True:
                 invite_code = random.randint(10000000, 99999999)
-
                 if not User.objects.filter(invite_code=invite_code).exists():
                     self.invite_code = invite_code
                     break
