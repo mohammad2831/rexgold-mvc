@@ -1,0 +1,104 @@
+
+{
+    "status": "warning",
+    "message": "Some products have invalid prices (-1).",
+    "invalid_products": [
+        {
+            "category": "مسکوکات",
+            "product": "نیم سکه 86",
+            "buy_price": "48470000",
+            "sell_price": -1
+        },
+        {
+            "category": "مسکوکات",
+            "product": "ربع سکه 86",
+            "buy_price": "28170000",
+            "sell_price": -1
+        },
+        {
+            "category": "مسکوکات",
+            "product": "تمام سکه تاریخ پایین",
+            "buy_price": "86680000",
+            "sell_price": -1
+        },
+        {
+            "category": "مسکوکات",
+            "product": "نیم تاریخ پایین",
+            "buy_price": "43700000",
+            "sell_price": -1
+        },
+        {
+            "category": "مسکوکات",
+            "product": "ربع تاریخ پایین",
+            "buy_price": "22300000",
+            "sell_price": -1
+        }
+    ],
+    "data": [
+        {
+            "category": "آبشده",
+            "products": [
+                {
+                    "title": "نقد فردا",
+                    "buy_price": "37705000",
+                    "sell_price": "37640000"
+                },
+                {
+                    "title": "پس فردایی",
+                    "buy_price": "38205000",
+                    "sell_price": "38140000"
+                }
+            ]
+        },
+        {
+            "category": "مسکوکات",
+            "products": [
+                {
+                    "title": "تمام سکه 86",
+                    "buy_price": "92680000",
+                    "sell_price": "92310000"
+                },
+                {
+                    "title": "نیم سکه 86",
+                    "buy_price": "48470000",
+                    "sell_price": -1
+                },
+                {
+                    "title": "ربع سکه 86",
+                    "buy_price": "28170000",
+                    "sell_price": -1
+                },
+                {
+                    "title": "تمام سکه تاریخ پایین",
+                    "buy_price": "86680000",
+                    "sell_price": -1
+                },
+                {
+                    "title": "نیم تاریخ پایین",
+                    "buy_price": "43700000",
+                    "sell_price": -1
+                },
+                {
+                    "title": "ربع تاریخ پایین",
+                    "buy_price": "22300000",
+                    "sell_price": -1
+                }
+            ]
+        }
+    ]
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+[{'product_id': '1', 'shop_id': '1', 'base_price_buy': 37715000, 'base_price_sell': 37655000, 'is_exist': True, 'timestamp': '2025-09-07T17:43:50.565157+00:00', 'api_title': 'نقد فردا', 'api_source': 'hanzaei_api'}, {'product_id': '2', 'shop_id': '1', 'base_price_buy': 38225000, 'base_price_sell': 38160000, 'is_exist': True, 'timestamp': '2025-09-07T17:43:50.565157+00:00', 'api_title': 'پس فردایی', 'api_source': 'hanzaei_api'}]
+[{'product_id': '1', 'shop_id': '1', 'base_price_buy': 37715000, 'base_price_sell': 37655000, 'is_exist': True, 'timestamp': '2025-09-07T17:43:50.565157+00:00', 'api_title': 'نقد فردا', 'api_source': 'hanzaei_api'}, {'product_id': '2', 'shop_id': '1', 'base_price_buy': 38225000, 'base_price_sell': 38160000, 'is_exist': True, 'timestamp': '2025-09-07T17:43:50.565157+00:00', 'api_title': 'پس فردایی', 'api_source': 'hanzaei_api'}, {'product_id': '8', 'shop_id': '1', 'base_price_buy': 92330000, 'base_price_sell': 91960000, 'is_exist': True, 'timestamp': '2025-09-07T17:43:50.565157+00:00', 'api_title': 'تمام سکه 86', 'api_source': 'hanzaei_api'}, {'product_id': '3', 'shop_id': '1', 'base_price_buy': 48470000, 'base_price_sell': -1, 'is_exist': True, 'timestamp': '2025-09-07T17:43:50.565157+00:00', 'api_title': 'نیم سکه 86', 'api_source': 'hanzaei_api'}, {'product_id': '5', 'shop_id': '1', 'base_price_buy': 28170000, 'base_price_sell': -1, 'is_exist': True, 'timestamp': '2025-09-07T17:43:50.565157+00:00', 'api_title': 'ربع سکه 86', 'api_source': 'hanzaei_api'}, {'product_id': '9', 'shop_id': '1', 'base_price_buy': 86680000, 'base_price_sell': -1, 'is_exist': True, 'timestamp': '2025-09-07T17:43:50.565157+00:00', 'api_title': 'تمام سکه تاریخ پایین', 'api_source': 'hanzaei_api'}]
