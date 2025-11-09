@@ -33,6 +33,7 @@ from rest_framework.generics import ListAPIView
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
 from Account_Module.models import User, UserGroup
+from .permissions import user_manager
 logger = logging.getLogger(__name__)
 
 
@@ -474,6 +475,7 @@ class AdminUpdateCategoryView(APIView):
         tags=['Admin Pannel (user)']
     )
 class AdminAddUserView(APIView):
+    permission_classes = [IsAuthenticated, user_manager]
     def post(self, request):
         many = isinstance(request.data, list)
         serializer = AdminAddUserViewSerializer(data=request.data, many=many)

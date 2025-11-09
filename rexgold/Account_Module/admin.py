@@ -46,7 +46,7 @@ class CustomUserAdmin(UserAdmin):
                                 'active_session_key','phone_number','request_status','invited_by',
                                 'guarantee_amount','user_type','cod_meli','invite_code','can_invite','user_status','address',
                                 'shomare_shaba','shomare_hesab',
-                                'rasteh','city','birth_date','group')})
+                                'rasteh','city','birth_date','group','groups')})
     )
 
 
