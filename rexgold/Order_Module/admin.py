@@ -58,16 +58,7 @@ class OrderAdmin(admin.ModelAdmin):
         elif obj.payment_status == 'unpaid':
             return "پرداخت نشده"
         return "نامشخص"
-    
-    # برای جلوگیری از خطای املایی در مدل: (اختیاری)
-    # اگر در مدل، نام فیلد 'wight' را به 'weight' تغییر ندادید، این قسمت را نادیده بگیرید.
-    # @admin.display(description='وزن (Weight)')
-    # def display_weight(self, obj):
-    #     return obj.wight
 
-# ----------------------------------------------------
-# ۲. مدیریت مدل Payment (پرداخت‌ها)
-# ----------------------------------------------------
 
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
@@ -93,5 +84,4 @@ class PaymentAdmin(admin.ModelAdmin):
         }),
     )
 
-    # فیلد 'date' شما از نوع CharField است که استاندارد نیست. 
-    # اگر این فیلد تاریخ را به صورت رشته ذخیره می‌کند، باید در نظر داشته باشید که جستجو و فیلتر کردن روی آن مشکل خواهد بود.
+ 

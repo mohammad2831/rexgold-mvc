@@ -14,7 +14,7 @@ from django.utils import timezone
 import secrets
 from django.core.cache import cache
 from drf_spectacular.utils import extend_schema
-from . serializers import AdminGetProfitUserViewSerializer,AdminGetProfitUserGroupViewSerializer,AdminAddProfitUserViewSerializer,AdminAddProfitUserGroupViewSerializer,AdminGetLastProfitAllViewSerializer,AdminAddProfitAllViewSerializer,AdminDetailCategoryViewSerializer,AdminListCategoryViewSerializer,AdminAddCategoryViewSerializer,AdminUpdateUserViewSerializer,AdminUpdateProductViewSerializer,AdminDetailProductViewSerializer,AdminListViewProductserializer,AdminAddProductViewSerializer,AdminListUserGroupViewSerializer,AdminAddUserGroupViewSerializer,AdminAddUserViewSerializer,AdminDetailUserViewSerializer,AdminListUserViewSerializer,AdminLoginViewSerializer,AdminVerifyLoginViewSerializer
+from . serializers import AdminUpdateUserViewSerializer,AdminListUserGroupViewSerializer,AdminAddUserGroupViewSerializer,AdminAddUserViewSerializer,AdminDetailUserViewSerializer,AdminListUserViewSerializer,AdminLoginViewSerializer,AdminVerifyLoginViewSerializer
 import re
 from Utils.sendotp import send_otp
 from rest_framework.permissions import AllowAny
@@ -22,7 +22,6 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.shortcuts import render, redirect, get_object_or_404
-#from Admin_Module.models import User, Product, Category, UserGroup
 from rest_framework import generics
 from rest_framework import viewsets
 from .filters import UserFilter
@@ -121,337 +120,6 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 
-
-
-
-
-
-
-
-
-#profit user
-@extend_schema(
-        tags=['Admin Pannel (profit user)'],
-        request = AdminAddProfitUserViewSerializer
-)
-class AdmiAddProfitUserView(APIView):
-    def post(self, request):
-        serializer = AdminAddProfitUserViewSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        data = serializer.validated_data.copy()
-        product_id = data.pop('product_id', None)
-        user_id = data.pop('user_id', None)
-
-        if not product_id:
-            return Response(
-                {"error": "فیلد 'product_id' الزامی است."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-
-        if not user_id:
-            return Response(
-                {"error": "فیلد 'user_id' الزامی است."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        try:
-            product = Product.objects.get(pk=product_id)
-        except Product.DoesNotExist:
-            return Response(
-                {"error": f"محصول با آیدی {product_id} پیدا نشد."},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        try:
-            user = User.objects.get(pk=user_id)
-        except User.DoesNotExist:
-            return Response(
-                {"error": f"کاربر با آیدی {user_id} پیدا نشد."},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-
-        data['product'] = product
-        data['user'] = user
-
-        try:
-            access = Access_By_User.objects.create(**data)
-        except Exception as e:
-            logger.exception("خطا در ایجاد Access_By_UserGroup: %s", e)
-            return Response(
-                {"error": "خطا در ایجاد رکورد جدید."},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-        # 7. پاسخ: فقط message و data (ورودی کاربر)
-        return Response({
-            "message": "تنظیمات با موفقیت ایجاد شد.",
-            "user": user_id,
-            "product": product_id,
-            "data": serializer.data
-        }, status=status.HTTP_201_CREATED)
-
-
-@extend_schema(
-        tags=['Admin Pannel (profit user)'],
-)
-class AdminGetLastProfitUserView(APIView):
-    def get(self, request, product_id, user_id):
-        # 1. دریافت آخرین رکورد
-        profit = Access_By_User.objects.filter(
-            product__id=product_id,
-            user__id=user_id  # درست: group
-        ).order_by('-id').first()
-
-        # 2. اگر وجود نداشت
-        if not profit:
-            return Response(
-                {"error": f"هیچ تنظیماتی برای محصول {product_id} و گروه {user_id} پیدا نشد."},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        # 3. سریالایز کردن خروجی
-        serializer = AdminGetProfitUserViewSerializer(profit)
-
-        # 4. پاسخ
-        return Response({
-            "message": "آخرین تنظیمات با موفقیت دریافت شد.",
-            "data": serializer.data
-        }, status=status.HTTP_200_OK)
-
-
-
-
-#profit user group
-@extend_schema(
-        tags=['Admin Pannel (profit user group)'],
-)
-class AdminGetLastProfitUserGroupView(APIView):
-    def get(self, request, product_id, usergroup_id):
-        # 1. دریافت آخرین رکورد
-        profit = Access_By_UserGroup.objects.filter(
-            product__id=product_id,
-            group__id=usergroup_id  # درست: group
-        ).order_by('-id').first()
-
-        # 2. اگر وجود نداشت
-        if not profit:
-            return Response(
-                {"error": f"هیچ تنظیماتی برای محصول {product_id} و گروه {usergroup_id} پیدا نشد."},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        # 3. سریالایز کردن خروجی
-        serializer = AdminGetProfitUserGroupViewSerializer(profit)
-
-        # 4. پاسخ
-        return Response({
-            "message": "آخرین تنظیمات با موفقیت دریافت شد.",
-            "data": serializer.data
-        }, status=status.HTTP_200_OK)
-
-
-@extend_schema(
-        tags=['Admin Pannel (profit user group)'],
-        request = AdminAddProfitUserGroupViewSerializer) 
-class AdmiAddProfitUserGroupView(APIView):
-    def post(self, request):
-        serializer = AdminAddProfitUserGroupViewSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        data = serializer.validated_data.copy()
-        product_id = data.pop('product_id', None)
-        group_id = data.pop('group_id', None)
-
-        if not product_id:
-            return Response(
-                {"error": "فیلد 'product_id' الزامی است."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-
-        if not group_id:
-            return Response(
-                {"error": "فیلد 'group_id' الزامی است."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        try:
-            product = Product.objects.get(pk=product_id)
-        except Product.DoesNotExist:
-            return Response(
-                {"error": f"محصول با آیدی {product_id} پیدا نشد."},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        try:
-            group = UserGroup.objects.get(pk=group_id)
-        except UserGroup.DoesNotExist:
-            return Response(
-                {"error": f"گروه با آیدی {group_id} پیدا نشد."},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-
-        data['product'] = product
-        data['group'] = group
-
-        try:
-            access = Access_By_UserGroup.objects.create(**data)
-        except Exception as e:
-            logger.exception("خطا در ایجاد Access_By_UserGroup: %s", e)
-            return Response(
-                {"error": "خطا در ایجاد رکورد جدید."},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-        # 7. پاسخ: فقط message و data (ورودی کاربر)
-        return Response({
-            "message": "تنظیمات با موفقیت ایجاد شد.",
-            "group": group_id,
-            "product": product_id,
-            "data": serializer.data
-        }, status=status.HTTP_201_CREATED)
-
-
-
-
-
-#profit all
-@extend_schema(
-        tags=['Admin Pannel (profit all)'],
-    )
-class AdminGetLastProfitAllView(APIView):
-    def get(self, request, product_id,user_id):
-       
-        profit = Access_All.objects.filter(product__id=product_id).order_by('-id').first()
-       
-        if not profit:
-            return Response(
-                {"error": f"هیچ تنظیماتی برای محصول با آیدی {pk} پیدا نشد."},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-       
-        serializer = AdminGetLastProfitAllViewSerializer(profit)
-
-        return Response({
-            "message": "آخرین تنظیمات با موفقیت دریافت شد.",
-            "data": serializer.data
-        }, status=status.HTTP_200_OK)
-
-
-
-@extend_schema(
-        tags=['Admin Pannel (profit all)'],
-        request = AdminAddProfitAllViewSerializer
-    )    
-class AdmiAddProfitAllView(APIView):
-    def post(self, request):
-        # 1. اعتبارسنجی ورودی
-        serializer = AdminAddProfitAllViewSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        data = serializer.validated_data.copy()
-        product_id = data.pop('product_id', None)
-
-        if not product_id:
-            return Response(
-                {"error": "فیلد 'product_id' الزامی است."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        try:
-            product = Product.objects.get(pk=product_id)
-        except Product.DoesNotExist:
-            return Response(
-                {"error": f"محصول با آیدی {product_id} پیدا نشد."},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        data['product'] = product
-
-        try:
-            access = Access_All.objects.create(**data)
-        except Exception as e:
-            logger.exception("خطا در اعمال تنظیمات: %s", e)
-            return Response(
-                {"error": "خطا در اعمال تنظیمات."},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-        # 6. پاسخ موفقیت
-        return Response({
-            "message": "تنظیمات با موفقیت ایجاد شد.",
-            "product": product_id,
-
-            "data":serializer.data,
-        }, status=status.HTTP_201_CREATED)
-
-
-
-
-
-
-
-
-
-
-#category
-
-@extend_schema(
-        tags=['Admin Pannel (product category)'],
-        request = AdminAddCategoryViewSerializer
-    )
-class AdminAddCategoryView(APIView):
-    def post(self, request):
-        serdata = AdminAddCategoryViewSerializer(data=request.data)
-        if serdata.is_valid():
-            serdata.save()
-            return Response(serdata.data, status=status.HTTP_201_CREATED)
-        return Response(serdata.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-@extend_schema(
-        tags=['Admin Pannel (product category)']
-    )
-class AdminDeleteCategoryView(APIView):
-    def delete(self, request, pk):
-        try:
-            cattegory = Category.objects.get(id=pk)
-        except Category.DoesNotExist:
-            return Response({"error": "دسته بندی با این ID وجود ندارد."}, status=status.HTTP_404_NOT_FOUND)
-
-        cattegory.delete()
-        return Response({"message": "دسته بندی با موفقیت حذف شد."}, status=status.HTTP_200_OK)
-
-
-
-@extend_schema(
-        tags=['Admin Pannel (product category)']
-    )
-class AdminDetailCategoryView(APIView):
-    def get(self, request, pk):
-        category = get_object_or_404(Category, pk=pk) 
-        serdata = AdminDetailCategoryViewSerializer(category) 
-        return Response(serdata.data, status=status.HTTP_200_OK)
-
-
-
-@extend_schema(
-        tags=['Admin Pannel (product category)']
-    )
-class AdminListCategoryView(APIView):
-    def get(self, request):
-        categories = Category.objects.all()
-        serdata =  AdminListCategoryViewSerializer(categories, many=True)
-        return Response(serdata.data, status=status.HTTP_200_OK)
-
-class AdminUpdateCategoryView(APIView):
-    pass
 
 
 
@@ -629,119 +297,6 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 
-
-
-
-
-#product
-
-@extend_schema(
-        tags=['Admin Pannel (products)'],
-        request=AdminListViewProductserializer,
-
-
-    )
-class AdminListProductView(APIView):
-    #authentication_classes = [JWTAuthentication]
-    #permission_classes = [IsAuthenticated, IsAdminUser]
-
-    def get(self, request):
-        products= Product.objects.all()
-
-        print(products)
-
-        serdata=AdminListViewProductserializer(products, many=True)
-        return Response(serdata.data, status=status.HTTP_200_OK)
-
-
-@extend_schema(
-        tags=['Admin Pannel (products)']
-    )
-class AdminDetailProductView(APIView):
-
-    def get(self, request, pk):
-        
-        try:
-            product = Product.objects.get(pk=pk)
-        
-        except Product.DoesNotExist:
-            return Response(
-                {"error": f"Product with ID {pk} not found."},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        print(product)
-        serializer = AdminDetailProductViewSerializer(product)
-        print(serializer)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-@extend_schema(
-    tags=['Admin Pannel (products)'],
-    request=AdminAddProductViewSerializer,
-    responses={
-        # پاسخ موفقیت‌آمیز برای ایجاد یک محصول
-        status.HTTP_201_CREATED: AdminAddProductViewSerializer,
-        # پاسخ خطا (Validation Error, Bad Request)
-        status.HTTP_400_BAD_REQUEST: {
-            'description': 'خطاهای اعتبارسنجی (Validation Errors) یا درخواست نامعتبر.',
-            'content': {
-                'application/json': {
-                    'example': {
-                        "weight": ["وزن برای فروش بر اساس وزن اجباری است."],
-                        "price": ["قیمت نمی‌تواند منفی باشد."],
-                        "user": ["کاربر معتبر نیست."]
-                    }
-                }
-            }
-        }
-    }
-)
-class AdminAddProductView(APIView):
-   # permission_classes = [permissions.IsAdminUser]
-
-    def post(self, request):
-        many = isinstance(request.data, list)
-        serializer = AdminAddProductViewSerializer(data=request.data, many=many)
-        
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-@extend_schema(
-        tags=['Admin Pannel (products)'],
-        request=AdminUpdateProductViewSerializer,
-
-        
-    )
-class AdminUpdataProductView(APIView):
-    def put(self, request, pk):
-        try:
-            product = Product.objects.get(id=pk)
-        except Product.DoesNotExist:
-            return Response({"error": "محصول با این ID وجود ندارد."}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = AdminUpdateProductViewSerializer(instance=product, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-@extend_schema(
-        tags=['Admin Pannel (products)']
-    )
-class AdminDeleteProductView(APIView):
-    def delete(self, request, pk):
-        try:
-            product = Product.objects.get(id=pk)
-        except Product.DoesNotExist:
-            return Response({"error": "محصول با این ID وجود ندارد."}, status=status.HTTP_404_NOT_FOUND)
-
-        product.delete()
-        return Response({"message": "محصول با موفقیت حذف شد."}, status=status.HTTP_200_OK)
 
 
 
@@ -1177,39 +732,45 @@ class AdminLoginGenerateOTPView(APIView):
     },
         tags=['Admin Pannel (oath)']
 )
-class AdminVerifyOTPView(APIView):
-    permission_classes = [AllowAny]
 
+class AdminVerifyOTPView(APIView):
+ 
     def post(self, request):
         serializer = AdminVerifyLoginViewSerializer(data=request.data)
-        if serializer.is_valid():
-            phone = serializer.validated_data['phone_number']
-            otp = serializer.validated_data['otp']
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-            cache_key = f"otp_{phone}"
-            cached_otp = cache.get(cache_key)
-            if not phone or not re.match(r'^\+?[0-9]\d{1,14}$', phone):
-                return Response({
-                    'status': 'warning',
-                    "message": "the phone number format it is not correct"}, status=status.HTTP_400_BAD_REQUEST)
+        phone = serializer.validated_data['phone_number']
+        otp = serializer.validated_data['otp']
 
-            if not User.objects.filter(phone_number=phone).exists():
-                return Response({"error": "Phone number not registered."}, status=status.HTTP_400_BAD_REQUEST)
+      
 
-            if cached_otp and cached_otp == otp:
+        cache_key = f"otp_{phone}"
+        cached_otp = cache.get(cache_key)
 
-                user, created = User.objects.get_or_create(phone_number=phone)
-                cache.delete(cache_key)
+        if cached_otp and cached_otp == otp:
+            user = User.objects.get(phone_number=phone)
+            allowed_statuses = ['admin', 'employee']
+            
+            if user.user_status not in allowed_statuses:
+                return Response(
+                    {"error": "Access denied. Only Admin or Employee accounts can login here."},
+                    status=status.HTTP_403_FORBIDDEN # 403 Forbidden مناسب‌تر است
+                )
 
-                refresh = RefreshToken.for_user(user)
-                return Response({
-                    "message": "OTP verified successfully",
-                    "refresh": str(refresh),
-                    "access": str(refresh.access_token),
-                }, status=status.HTTP_200_OK)
+            cache.delete(cache_key)
 
-            return Response({"error": "Invalid phone number or expired OTP"}, status=status.HTTP_400_BAD_REQUEST)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            refresh = RefreshToken.for_user(user)
+            
+            return Response({
+                "message": "OTP verified successfully",
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+            }, status=status.HTTP_200_OK)
+
+        return Response({"error": "Invalid phone number or expired OTP"}, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 
 

@@ -30,31 +30,7 @@ USER_ONLINE_KEY_PREFIX = "online_user_"
 ONLINE_TIMEOUT_SECONDS = 900
 
 
-@extend_schema(
-)
-class testredis(APIView):
-    """
-    یک ویو API برای تست ذخیره سازی داده در کش (Redis).
-    """
-    
-    def get(self, request): # ترتیب آرگومان‌ها را تصحیح کردیم
-        
-        # ۱. تعریف کلید و مقدار برای ذخیره
-        key = 'user_name_test'
-        value = 'mamad'
-        
-        # ۲. ذخیره مقدار در کش (Redis)
-        # cache.set(key, value, timeout=None)
-        # timeout: مدت زمان ذخیره سازی بر حسب ثانیه (مثلاً 60 ثانیه). اگر None باشد، از پیش‌فرض settings.py استفاده می‌شود.
-        cache.set(key, value, timeout=60)
-        
-        # ۳. تست موفقیت‌آمیز بودن ذخیره (اختیاری)
-        # retrieved_value = cache.get(key)
-        
-        return Response(
-            {"message": f"Value '{value}' set successfully for key '{key}' in cache."}, 
-            status=status.HTTP_200_OK # در صورت موفقیت، کد 200 یا 201 مناسب‌تر است
-        )
+
 
 
 

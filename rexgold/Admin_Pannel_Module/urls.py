@@ -9,19 +9,7 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='logout'),
 
 
-    #product
-    path('productlist/',views.AdminListProductView.as_view(), name='productList'),
-    path('productadd/', views.AdminAddProductView.as_view(), name='AddProduct'),
-    path('productupdate/<int:pk>/', views.AdminUpdataProductView.as_view(), name='productupdate'),
-    path('productdetail/<int:pk>/', views.AdminDetailProductView.as_view(), name='productdetail'),
-    path('productdelete/<int:pk>/', views.AdminDeleteProductView.as_view(), name='DeleteProduct'),
 
-    #category
-    path('categoryadd/', views.AdminAddCategoryView.as_view(), name='categoryadd'),
-    path('categorydelete/<int:pk>/', views.AdminDeleteCategoryView.as_view(), name='categorydelete'),
-    path('categoryupdate/<int:pk>/', views.AdminUpdateCategoryView.as_view(), name='categoryudate'),
-    path('categorydetail/<int:pk>/', views.AdminDetailCategoryView.as_view(), name='categorydetail'),
-    path('categorylist/',views.AdminListCategoryView.as_view(), name='categorylist'),
 
 
     #user
@@ -42,17 +30,15 @@ urlpatterns = [
     path('usergroupdetail/<int:pk>/', views.AdminDetailUserGroupView().as_view(), name='usergroupdetail'),
 
 
-    #profit all
-    path('profitall/add/', views.AdmiAddProfitAllView.as_view(), name='profitalladd'),
-    path('profitall/<int:pk>/', views.AdminGetLastProfitAllView.as_view(), name='getlastprofitall'),
-    #profit by user gruop
 
-    path('profitusergroup/add/', views.AdmiAddProfitUserGroupView.as_view(), name='profitusergroupadd'),
-    path('profitusergroup/<int:product_id>/<int:usergroup_id>/', views.AdminGetLastProfitUserGroupView.as_view(), name='getlastprofitall'),
 
-    #profit by user
-    path('profituser/add/', views.AdmiAddProfitUserView.as_view(), name='profituseradd'),
-    path('profituser/<int:product_id>/<int:user_id>/', views.AdminGetLastProfitUserView.as_view(), name='getlastprofituser'),
+    path('order/', include('Order_Module.urls')),
+    path('profit/', include('Price_Mnage_Module.urls', namespace='profit')), 
+    
+    path('product/', include('Product_Data_Module.urls', namespace='product')),
+    path('user/', include('Account_Module.urls', namespace='Account_Module'))
+    
+ 
 
 
 

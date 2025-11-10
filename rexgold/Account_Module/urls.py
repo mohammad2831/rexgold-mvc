@@ -1,7 +1,7 @@
 from django.urls import path
 from . import views
 
-
+app_name = 'Account_Module'
 
 urlpatterns = [
     path('signup', views.SignupGenerateOTPView.as_view(), name='signup'),
@@ -13,7 +13,6 @@ urlpatterns = [
 
 
 
-    path('test/', views.testredis.as_view()),
 
 
 ]
