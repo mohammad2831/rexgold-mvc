@@ -3,6 +3,8 @@ from . import views
 
 urlpatterns = [
 
-    path('list/', views.AdminAddOrderView.as_view(), name='order-list'),
-    #path('add/', views.AddOrderAdminView.as_view(), name='order-add'),
+    path('orderadd/', views.AdminAddOrderView.as_view(), name='order-add'),
+    path('orderlist/', views.AdminListOrderView.as_view(), name='order-list'),
+    path('serch/orders/', views.OrderViewSet.as_view({'get': 'list'}), name='order-list'),
+   # path(''),
 ]

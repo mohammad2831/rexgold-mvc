@@ -2,6 +2,7 @@ from django.db import models
 from Account_Module.models import User
 from django.utils.timezone import now
 import jdatetime
+from Product_Data_Module.models import Product
 
 
 class Payment(models.Model):
@@ -54,9 +55,13 @@ class Order(models.Model):
         ('not_deliver', 'تحویل داده نشده'),
         ('deliver', 'تحویل داده شده'),
     )
+    TYPE_CHOICES5 = (
+        ('admin_pannel', 'پنل ادمین'),
+        ('user_pannel', 'پنل کاربری'),
+    )
     created_at = models.DateTimeField(default=now)
     type_of_deal = models.CharField(max_length=200, choices=TYPE_CHOICES)
-    wight = models.BigIntegerField(default=0)
+    weight = models.BigIntegerField(default=0)
     soot = models.FloatField(default=0)
     price = models.BigIntegerField(default=0)
     main_price = models.BigIntegerField(default=0)
@@ -72,6 +77,13 @@ class Order(models.Model):
     factor_number = models.IntegerField(default=0)
     ok_responde = models.PositiveBigIntegerField(default=0)
 
+
+    product = models.ForeignKey(
+        Product, 
+        on_delete=models.CASCADE, 
+        related_name='orders' # نام معکوس برای دسترسی از Product به Orderها
+    )
+    source_order = models.CharField(max_length=200, choices=TYPE_CHOICES5)
     def get_jalali_date(self):
         jalali_date = jdatetime.datetime.fromgregorian(datetime=self.created_at)
 
