@@ -36,7 +36,7 @@ urlpatterns = [
     path('profit/', include('Price_Mnage_Module.urls', namespace='profit')), 
     
     path('product/', include('Product_Data_Module.urls', namespace='product')),
-    path('user/', include('Account_Module.urls', namespace='Account_Module'))
+    #path('user/', include('Account_Module.urls', namespace='Account_Module'))
     
  
 

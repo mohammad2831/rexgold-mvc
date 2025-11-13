@@ -15,5 +15,9 @@ urlpatterns = [
     #profit by user
     path('profituser/add/', views.AdmiAddProfitUserView.as_view(), name='profituseradd'),
     path('profituser/<int:product_id>/<int:user_id>/', views.AdminGetLastProfitUserView.as_view(), name='getlastprofituser'),
+
+    #config
+    path('configadd/', views.AdminAddConfigPriceManageView.as_view(), name='getconfig'),
+    path('configget/', views.AdminGetConfigPriceManageView.as_view(), name='getconfig'),
     
 ]

@@ -3,6 +3,12 @@ from Account_Module.models import User, UserGroup
 from Product_Data_Module.models import Product, ProductPrice
 
 
+class Config_Price_Manage(models.Model):
+    add_access_all=models.BooleanField(default=False)
+    shop_status=models.BooleanField(default=True)
+
+
+
 
 
 class Access_All(models.Model):
@@ -14,12 +20,9 @@ class Access_All(models.Model):
     active_for_sell=models.BooleanField(default=True)
     active_for_buy=models.BooleanField(default=True)
 
+    automate_price=models.BooleanField(default=False)
+    automate_order=models.BooleanField(default=False)
 
-    max_weight_buy = models.BooleanField(default=0)
-    min_weight_buy = models.BooleanField(default=0)
-
-    max_weight_sell = models.BooleanField(default=0)
-    min_weight_sell = models.BooleanField(default=0)
 
     def __str__(self):
         return str(self.product)

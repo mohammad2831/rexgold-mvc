@@ -20,11 +20,13 @@ class Product(models.Model):
         ('by_quantity', 'بر اساس تعداد'),
     ]
     type = models.CharField(max_length=20, choices=SALE_TYPE_CHOICES, default='by_quantity')
-
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products', null=True, blank=True)
+    max_weight_sellbuy_order = models.BigIntegerField(default=0)
+    min_weight_sellbuy_order = models.BigIntegerField(default=0)
+    max_wheight_automate_order = models.BigIntegerField(default=0)
     def __str__(self):
         return f'{self.name}'
     
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products', null=True, blank=True)
 
 
 

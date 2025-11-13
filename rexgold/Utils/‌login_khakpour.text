@@ -1,0 +1,49 @@
+curl -X POST "https://api.khakpourgold.com/auth/send-otp" \
+     -H "Content-Type: application/json" \
+     -d '{"mobile": "09033438205"}' \
+     --proxy http://127.0.0.1:10808 \
+     --insecure \
+     -w "HTTP Status: %{http_code}\nTime: %{time_total}s\n" \
+     --silent
+
+
+
+#### اگر دیتا درست باشد 
+> curl -X POST "https://api.khakpourgold.com/auth/send-otp" \
+     -H "Content-Type: application/json" \
+     -d '{"mobile": "09033438205"}' \
+     --proxy http://127.0.0.1:10808 \
+     --insecure \
+     -w "HTTP Status: %{http_code}\nTime: %{time_total}s\n" \
+     --silent
+HTTP Status: 204
+Time: 1.416151s
+~                  
+
+################################3 اگر شماره در سامانه ثبت نباشد
+> curl -X POST "https://api.khakpourgold.com/auth/send-otp" \
+     -H "Content-Type: application/json" \
+     -d '{"mobile": "09033438206"}' \
+     --proxy http://127.0.0.1:10808 \
+     --insecure \
+     -w "HTTP Status: %{http_code}\nTime: %{time_total}s\n" \
+     --silent
+{"message":"\u062a\u0644\u0641\u0646 \u0647\u0645\u0631\u0627\u0647 \u0634\u0645\u0627 \u062f\u0631 \u0633\u0627\u0645\u0627\u0646\u0647 \u062b\u0628\u062a \u0646\u0634\u062f\u0647 \u0627\u0633\u062a","errors":{"mobile":["\u062a\u0644\u0641\u0646 \u0647\u0645\u0631\u0627\u0647 \u0634\u0645\u0627 \u062f\u0631 \u0633\u0627\u0645\u0627\u0646\u0647 \u062b\u0628\u062a \u0646\u0634\u062f\u0647 \u0627\u0633\u062a"]}}HTTP Status: 422
+Time: 1.360560s
+##################################ارسال کد تاییدیه و گرفتن توکن
+> curl -X POST "https://api.khakpourgold.com/auth/token" \
+     -H "Content-Type: application/json" \
+     -d '{"code": "5717", "mobile": "09033438205"}' \
+     --proxy http://127.0.0.1:10808 \
+     --insecure \
+     -i -s
+HTTP/1.1 200 Connection established
+
+HTTP/2 204 
+date: Wed, 12 Nov 2025 15:56:48 GMT
+cache-control: no-cache, private
+x-ratelimit-limit: 3
+x-ratelimit-remaining: 2
+vary: Origin
+set-cookie: access_token_web=eyJpdiI6IkxCMzFtS1Y5RVlMK2VQcENIQmNtQmc9PSIsInZhbHVlIjoiR0ltRkNSaGx2NWpDNkV3dThvQ0c3cHloMnJEc1FCUlJ1WEx3UUVOcEZINmJ0RWpPVENndzFYUHJNWGcwdSs4aWhUdDNRRFI1MWtGd3lXdktmQkxoSUp3QXhSd1h5RE9xK0dFdGRYV0llNmRDdWx5MjA2M0VzYW1EbHBlWGFGOHZzMndNUWtKY0hPRjdOb2M2UmkyV0VHSFJQK3dSN2c5b1FOWnlzeUF5YlFNektnNjlIY3hZSGpwN0YwUTMzZVhZcUFqK2x1a0pTZ096K2ttYjIxdjY2bzV2YjhZMUtRaEEycERaMVd0RElEQUpVY2FUUkMyQjNaWWxIa1NNYm5MMkdSa1RabFhYa3EzQ3dUeDdhTnRJaWpoYURPR1AwMG9CeUh6dUx0MnBPUms3UGdJOHg5SWU3Rzh0L0R6OGJxTSsiLCJtYWMiOiIwZmY3MTc4ZTVlOTVjOWFlZjU4YjU1NGQwMDcxNDk1Y2MzOWI1NTgyZjMyMmZlZTY1NWY0NDhjMjZhZDliNjQ5IiwidGFnIjoiIn0%3D; expires=Sun, 16 Nov 2025 15:56:48 GMT; Max-Age=345600; path=/; secure; httponly; samesite=none
+strict-transport-security: max-age=31536000; includeSubDomains

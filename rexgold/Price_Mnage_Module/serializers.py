@@ -1,7 +1,14 @@
 from rest_framework import serializers
-from Price_Mnage_Module.models import Access_All,Access_By_User,Access_By_UserGroup
+from Price_Mnage_Module.models import Config_Price_Manage,Access_All,Access_By_User,Access_By_UserGroup
 
 
+class AdminAddConfigPriceManageViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Config_Price_Manage
+        fields = [
+        'add_access_all',
+        'shop_status',
+        ]
 
 class AdminGetProfitUserViewSerializer(serializers.ModelSerializer):
     product_id = serializers.IntegerField(source='product.id', read_only=True)

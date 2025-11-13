@@ -1,5 +1,6 @@
 from django.shortcuts import render
 import logging
+from django.db import transaction
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
 from rest_framework.views import APIView
@@ -7,15 +8,79 @@ from rest_framework.response import Response
 from rest_framework import status
 from Account_Module.models import User, UserGroup
 from Product_Data_Module.models import Product
-from . models import Access_All,Access_By_User,Access_By_UserGroup
-from .serializers import AdminAddProfitAllViewSerializer,AdminAddProfitUserGroupViewSerializer,AdminAddProfitUserViewSerializer,AdminGetLastProfitAllViewSerializer,AdminGetProfitUserGroupViewSerializer,AdminGetProfitUserViewSerializer
+from . models import Access_All,Access_By_User,Access_By_UserGroup, Config_Price_Manage
+from .serializers import AdminAddConfigPriceManageViewSerializer,AdminAddProfitAllViewSerializer,AdminAddProfitUserGroupViewSerializer,AdminAddProfitUserViewSerializer,AdminGetLastProfitAllViewSerializer,AdminGetProfitUserGroupViewSerializer,AdminGetProfitUserViewSerializer
 logger = logging.getLogger(__name__)
 
 
 
+@extend_schema(
+        tags=['Admin Pannel (profit all)'],
+)
+class AdminGetConfigPriceManageView(APIView):
+    def get(self, request):
+            try:
+                config = Config_Price_Manage.objects.all().first()
+                if config:
+                    serializer = AdminAddConfigPriceManageViewSerializer(config)
+                    
+                    return Response(
+                        {
+                            "message": "تنظیمات جاری با موفقیت بازیابی شد.",
+                            "data": serializer.data
+                        },
+                        status=status.HTTP_200_OK
+                    )
+                else:
+                    return Response(
+                        {
+                            "message": "تنظیمات پیکربندی هنوز در پایگاه داده ذخیره نشده است.",
+                            "data": {}
+                        },
+                        status=status.HTTP_404_NOT_FOUND
+                    )
 
+            except Exception as e:
+                return Response(
+                    {"message": "خطایی در هنگام بازیابی تنظیمات رخ داد.", "detail": str(e)}, 
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
 
+@extend_schema(
+        tags=['Admin Pannel (profit all)'],
+        request = AdminAddConfigPriceManageViewSerializer
+)
+class AdminAddConfigPriceManageView(APIView):
+    def post(self, request):
+        serializer = AdminAddConfigPriceManageViewSerializer(data=request.data)
+        
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            with transaction.atomic():
 
+                Config_Price_Manage.objects.all().delete()
+                
+
+                new_config = Config_Price_Manage.objects.create(**serializer.validated_data)
+                
+ 
+            response_serializer = AdminAddConfigPriceManageViewSerializer(new_config)
+            
+            return Response(
+                {
+                    "message": "تنظیمات با موفقیت ذخیره و به روز رسانی شد.",
+                    "data": response_serializer.data
+                },
+                status=status.HTTP_201_CREATED # استفاده از 201 برای ایجاد موفقیت‌آمیز
+            )
+            
+        except Exception as e:
+            return Response(
+                {"message": "خطایی در هنگام ذخیره سازی تنظیمات رخ داد.", "detail": str(e)}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 #profit user
 @extend_schema(

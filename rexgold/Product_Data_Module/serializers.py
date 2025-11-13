@@ -25,7 +25,7 @@ class AdminDetailProductViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = [
-             'id','name','weight','fee_percent','price','user_creator','date','image','type','category', 'type_display'
+             'id','name','weight','fee_percent','price','user_creator','date','image','type','category', 'type_display', 'max_weight_sellbuy_order', 'min_weight_sellbuy_order', 'max_wheight_automate_order'
          ]
 
 
@@ -35,7 +35,7 @@ class AdminAddProductViewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ['id','name', 'weight', 'fee_percent', 'price', 'user_creator', 'image', 'type']
+        fields = ['id','name', 'weight', 'fee_percent', 'price', 'user_creator', 'image', 'type', 'category', 'max_weight_sellbuy_order', 'min_weight_sellbuy_order', 'max_wheight_automate_order']
         extra_kwargs = {
             'name': {'required': True},
             'price': {'required': True},
@@ -62,7 +62,7 @@ class AdminUpdateProductViewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         # ID برای نمایش خروجی اضافه شد
-        fields = ['id', 'name', 'weight', 'fee_percent', 'price', 'user_creator', 'image', 'type'] 
+        fields = ['id', 'name', 'weight', 'fee_percent', 'price', 'user_creator', 'image', 'type', 'category', 'max_weight_sellbuy_order', 'min_weight_sellbuy_order', 'max_wheight_automate_order'] 
         extra_kwargs = {
             'id': {'read_only': True}, # <--- اطمینان از خواندنی بودن ID
             'name': {'required': False}, 
