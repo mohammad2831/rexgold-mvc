@@ -37,24 +37,24 @@ def handle_price_message(message):
     except Exception as e:
         print("Error in price listener:", e)
 
+
+
+
+
+
 def start_price_listener():
+    host = os.getenv('REDIS_HOST', 'localhost')
     try:
-        r = redis.Redis(host='127.0.0.1', port=6379, db=0, decode_responses=True)
+        r = redis.Redis(host=host, port=6379, db=0, decode_responses=True)
         pubsub = r.pubsub()
         pubsub.subscribe("price_updates")
-        print("[Listener] Subscribed to price_updates channel...")
+        print(f"[Listener] Subscribed to price_updates on {host}")
 
         for message in pubsub.listen():
             if message['type'] == 'message':
-                print(f"[Listener] Raw message: {message}")
                 data = json.loads(message['data'])
                 if data.get('event') == 'price_updated':
-                    product = data['product']
-                    update_price_cache(
-                        label=product['label'],
-                        title=product['title'],
-                        buy=product['new_buy'],
-                        sell=product['new_sell']
-                    )
+                    p = data['product']
+                    update_price_cache(p['label'], p['title'], p['new_buy'], p['new_sell'])
     except Exception as e:
         print(f"[Listener] ERROR: {e}")
