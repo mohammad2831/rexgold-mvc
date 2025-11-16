@@ -1,7 +1,11 @@
 
 from django.urls import path
+
 from . import views 
+from .views import latest_prices_view
 app_name = 'Product_Data_Module' 
+
+
 urlpatterns = [
 # --- Product URLs ---
     path('productlist/', views.AdminListProductView.as_view(), name='product_list'),
@@ -16,4 +20,7 @@ urlpatterns = [
     path('category/categoryupdate/<int:pk>/', views.AdminUpdateCategoryView.as_view(), name='category_update'),
     path('category/categorydetail/<int:pk>/', views.AdminDetailCategoryView.as_view(), name='category_detail'),
     path('category/categorydelete/<int:pk>/', views.AdminDeleteCategoryView.as_view(), name='category_delete'),
+
+
+    path('price/latest-prices/', latest_prices_view, name='latest_prices'),
 ]

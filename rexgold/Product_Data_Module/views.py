@@ -8,6 +8,23 @@ from .models import Product, Category
 from .serializers import AdminAddCategoryViewSerializer,AdminAddProductViewSerializer,AdminDeleteProductSerializer,AdminDetailCategoryViewSerializer,AdminDetailProductViewSerializer,AdminListCategoryViewSerializer,AdminListViewProductserializer,AdminUpdateProductViewSerializer
 from django.shortcuts import render, redirect, get_object_or_404
 
+from django.http import JsonResponse
+from django.core.cache import cache
+from .price_cache import LATEST_PRICES_KEY, LATEST_UPDATE_KEY
+from . price_cache import get_all_prices
+
+
+@extend_schema(
+        tags=['Price'],    
+    )
+def latest_prices_view(request):
+    data = get_all_prices()
+    return JsonResponse(data, json_dumps_params={'ensure_ascii': False})
+
+
+
+
+
 
 
 
