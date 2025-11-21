@@ -32,7 +32,11 @@ from rest_framework.generics import ListAPIView
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from drf_spectacular.types import OpenApiTypes
 from Account_Module.models import User, UserGroup
-from .permissions import user_manager
+from .permissions import employee, user_manager, usergroup_manager
+from rest_framework.permissions import IsAuthenticated
+
+from Account_Module.constants import USER_TYPE_CHOICES, USER_REQUEST_STATUS_CHOICES,USER_STATUS_CHOICES
+
 logger = logging.getLogger(__name__)
 
 
@@ -89,7 +93,7 @@ logger = logging.getLogger(__name__)
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = AdminListUserViewSerializer
-    #permission_classes = [IsAdminUser]  # فقط ادمین‌ها دسترسی داشته باشن
+    permission_classes = [IsAuthenticated, user_manager, employee] 
     filter_backends = [DjangoFilterBackend] 
     filterset_class = UserFilter
 
@@ -137,13 +141,51 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 #user
+@extend_schema(
+        tags=['Admin Pannel (user)']
+    )
+
+class UserTypeChoicesAPIView(APIView):
+    permission_classes = [IsAuthenticated, employee] 
+
+    def get(self, request):
+        return Response({
+            "user_types": USER_TYPE_CHOICES
+        })
+
+
+@extend_schema(
+        tags=['Admin Pannel (user)']
+    )
+class UserRequestStatusChoisesAPIView(APIView):
+    permission_classes = [IsAuthenticated, employee] 
+
+    def get(self, request):
+        return Response({
+            "request_status": USER_REQUEST_STATUS_CHOICES
+        })
+
+
+@extend_schema(
+        tags=['Admin Pannel (user)']
+    )
+class UserStatusChoicesAPIView(APIView):
+    permission_classes = [IsAuthenticated, employee] 
+
+    def get(self, request):
+        return Response({
+            "user_status": USER_STATUS_CHOICES
+        })  
+
+
+
 
 @extend_schema(
         request=AdminAddUserViewSerializer,
         tags=['Admin Pannel (user)']
     )
 class AdminAddUserView(APIView):
-    permission_classes = [IsAuthenticated, user_manager]
+    permission_classes = [IsAuthenticated, employee, user_manager] 
     def post(self, request):
         many = isinstance(request.data, list)
         serializer = AdminAddUserViewSerializer(data=request.data, many=many)
@@ -159,6 +201,8 @@ class AdminAddUserView(APIView):
         request=AdminUpdateUserViewSerializer
     )
 class AdminUpdateUserView(APIView):
+    permission_classes = [IsAuthenticated, employee, user_manager] 
+
     def put(self, request, pk):
         try:
             user = User.objects.get(id=pk)
@@ -176,6 +220,8 @@ class AdminUpdateUserView(APIView):
         tags=['Admin Pannel (user)']
     )
 class AdminDetailUserView(APIView):
+    permission_classes = [IsAuthenticated, employee, user_manager] 
+
     def get(self, request, pk):
         user = get_object_or_404(User, pk=pk)
         serdata = AdminDetailUserViewSerializer(user)
@@ -186,6 +232,8 @@ class AdminDetailUserView(APIView):
         tags=['Admin Pannel (user)']
     )
 class AdminListUserView(APIView):
+    permission_classes = [IsAuthenticated, employee, user_manager] 
+
     def get(self, request):
         users = User.objects.all().select_related('group')
         
@@ -202,6 +250,8 @@ class AdminListUserView(APIView):
         tags=['Admin Pannel (user)']
     )
 class AdminDeleteUserView(APIView):
+    permission_classes = [IsAuthenticated, employee, user_manager] 
+
     def delete(self, request, pk):
         try:
             product = User.objects.get(id=pk)
@@ -279,7 +329,7 @@ class AdminDeleteUserView(APIView):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = AdminListUserViewSerializer
-    #permission_classes = [IsAdminUser]  # فقط ادمین‌ها دسترسی داشته باشن
+    permission_classes = [IsAuthenticated, employee, user_manager] 
     filter_backends = [DjangoFilterBackend] 
     filterset_class = UserFilter
 
@@ -343,6 +393,8 @@ class UserViewSet(viewsets.ModelViewSet):
         tags=['Admin Pannel (user group)']
     )
 class AdminDetailUserGroupView(APIView):
+    permission_classes = [IsAuthenticated, employee, usergroup_manager] 
+
     def get(self, request, pk):
         usergroup = get_object_or_404(UserGroup, pk=pk)
         users = usergroup.members.all()
@@ -363,6 +415,8 @@ class AdminDetailUserGroupView(APIView):
         tags=['Admin Pannel (user group)']
     )
 class AdminUpdateUserGroupView(APIView):
+    permission_classes = [IsAuthenticated, employee, usergroup_manager] 
+
     def put(self, request):
         pass
 
@@ -374,6 +428,8 @@ class AdminUpdateUserGroupView(APIView):
         tags=['Admin Pannel (user group)']
     )
 class AdminListUserGroupView(APIView):
+    permission_classes = [IsAuthenticated, employee, usergroup_manager] 
+
     def get(self, request):
         usergroups = UserGroup.objects.all()
         serdata =  AdminListUserGroupViewSerializer(usergroups, many=True)
@@ -385,6 +441,8 @@ class AdminListUserGroupView(APIView):
         tags=['Admin Pannel (user group)']
     )
 class AdminDeleteUserGroupView(APIView):
+    permission_classes = [IsAuthenticated, employee, usergroup_manager] 
+
     def delete(self, request, pk):
         try:
             product = UserGroup.objects.get(id=pk)
@@ -401,6 +459,8 @@ class AdminDeleteUserGroupView(APIView):
         tags=['Admin Pannel (user group)']
     )
 class AdminAddUserGroupView(APIView):
+    permission_classes = [IsAuthenticated, employee, usergroup_manager] 
+
     
     def post(self, request):
         serdata = AdminAddUserGroupViewSerializer(data=request.data)
@@ -533,6 +593,8 @@ class AdminAddUserGroupView(APIView):
         tags=['Admin Pannel (user)']
     )
 class AdminListUserView(ListAPIView):
+    permission_classes = [IsAuthenticated, employee, user_manager] 
+
     queryset = User.objects.all().select_related('group')
     serializer_class = AdminListUserViewSerializer
 
@@ -667,7 +729,7 @@ def generate_otp(phone_number, timeout=300):
         tags=['Admin Pannel (oath)']
     )
 class AdminLoginGenerateOTPView(APIView):
-    permission_classes = [AllowAny]
+    permission_classes = [employee]
 
     def post(self, request):
         serializer = AdminLoginViewSerializer(data=request.data)
@@ -687,22 +749,18 @@ class AdminLoginGenerateOTPView(APIView):
                 return Response({
                     'status': 'error',
                     "message": "user it is not active"}, status=status.HTTP_403_FORBIDDEN)
-            if user.is_superuser and user.is_staff:
+            
 
-                otp = generate_otp(phone)
-                cache_key = f"otp_{phone}"
-                cache.set(cache_key, otp, timeout=300)
-                try:
-                    print(f"Login OTP for {phone}: {cache.get(cache_key)}")
-                    send_otp(pattern='69u9der8ondg7dn', otp=otp, phone=phone)
-                    return Response({"message": "OTP sent for login."}, status=status.HTTP_200_OK)
-                except:
-                    return Response({"message": "can not send otp"}, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                return Response({
-                    'status': 'error',
-                    "message": "you are not a admin"}, status=status.HTTP_406_NOT_ACCEPTABLE)
-
+            otp = generate_otp(phone)
+            cache_key = f"otp_{phone}"
+            cache.set(cache_key, otp, timeout=300)
+            try:
+                print(f"Login OTP for {phone}: {cache.get(cache_key)}")
+                send_otp(pattern='69u9der8ondg7dn', otp=otp, phone=phone)
+                return Response({"message": "OTP sent for login."}, status=status.HTTP_200_OK)
+            except:
+                return Response({"message": "can not send otp"}, status=status.HTTP_400_BAD_REQUEST)
+            
 
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -782,8 +840,3 @@ class AdminVerifyOTPView(APIView):
 
 
 
-
-
-
-
-    pass

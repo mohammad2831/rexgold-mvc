@@ -17,14 +17,15 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 from .models import Order 
-# ... بقیه ایمپورت‌ها ...
-
+from .permissions import order_manager
+from Admin_Pannel_Module.permissions import employee
+from rest_framework.permissions import IsAuthenticated
 
 
 
 
 @extend_schema(
-    tags=['Admin Panel (order)'],
+    tags=['Admin Pannel (order)'],
     parameters=[
         OpenApiParameter(
             name='search',
@@ -86,7 +87,7 @@ class OrderViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend] 
     filterset_class = OrderFilter
     
-    # permission_classes = [IsAdminUser] 
+    permission_classes = [IsAuthenticated, employee , order_manager] 
     def get_queryset(self):
 
         fields_to_select = [
@@ -108,8 +109,9 @@ class OrderViewSet(viewsets.ModelViewSet):
         request=AdminAddOrderViewSerializer,
         )
 class AdminAddOrderView(APIView):
-    # permission_classes = [IsAdminUser] # فقط ادمین
-
+    permission_classes = [IsAuthenticated, employee , order_manager] 
+    
+    
     def post(self, request):
         serializer = AdminAddOrderViewSerializer(data=request.data)
 
@@ -206,7 +208,7 @@ class AdminAddOrderView(APIView):
         )
 class AdminListOrderView(APIView):
 
-   # permission_classes = [IsAdminUser] # فقط ادمین
+    permission_classes = [IsAuthenticated, employee , order_manager] 
 
     def get(self, request):
       

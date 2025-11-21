@@ -7,11 +7,14 @@ from drf_spectacular.types import OpenApiTypes
 from .models import Product, Category
 from .serializers import AdminAddCategoryViewSerializer,AdminAddProductViewSerializer,AdminDeleteProductSerializer,AdminDetailCategoryViewSerializer,AdminDetailProductViewSerializer,AdminListCategoryViewSerializer,AdminListViewProductserializer,AdminUpdateProductViewSerializer
 from django.shortcuts import render, redirect, get_object_or_404
-
 from django.http import JsonResponse
 from django.core.cache import cache
 from .price_cache import LATEST_PRICES_KEY, LATEST_UPDATE_KEY
 from . price_cache import get_all_prices
+from .permissions import product_manager, category_manager
+from Admin_Pannel_Module.permissions import employee
+from rest_framework.permissions import IsAuthenticated
+
 
 
 @extend_schema(
@@ -35,6 +38,8 @@ def latest_prices_view(request):
         request = AdminAddCategoryViewSerializer
     )
 class AdminAddCategoryView(APIView):
+    permission_classes = [IsAuthenticated, employee, category_manager] 
+
     def post(self, request):
         serdata = AdminAddCategoryViewSerializer(data=request.data)
         if serdata.is_valid():
@@ -47,6 +52,8 @@ class AdminAddCategoryView(APIView):
         tags=['Admin Pannel (product category)']
     )
 class AdminDeleteCategoryView(APIView):
+    permission_classes = [IsAuthenticated, employee, category_manager] 
+
     def delete(self, request, pk):
         try:
             cattegory = Category.objects.get(id=pk)
@@ -62,6 +69,8 @@ class AdminDeleteCategoryView(APIView):
         tags=['Admin Pannel (product category)']
     )
 class AdminDetailCategoryView(APIView):
+    permission_classes = [IsAuthenticated, employee, category_manager] 
+
     def get(self, request, pk):
         category = get_object_or_404(Category, pk=pk) 
         serdata = AdminDetailCategoryViewSerializer(category) 
@@ -73,12 +82,16 @@ class AdminDetailCategoryView(APIView):
         tags=['Admin Pannel (product category)']
     )
 class AdminListCategoryView(APIView):
+    permission_classes = [IsAuthenticated, employee, category_manager] 
+
     def get(self, request):
         categories = Category.objects.all()
         serdata =  AdminListCategoryViewSerializer(categories, many=True)
         return Response(serdata.data, status=status.HTTP_200_OK)
 
 class AdminUpdateCategoryView(APIView):
+    permission_classes = [IsAuthenticated, employee, category_manager] 
+
     pass
 
 
@@ -96,7 +109,7 @@ class AdminUpdateCategoryView(APIView):
     )
 class AdminListProductView(APIView):
     #authentication_classes = [JWTAuthentication]
-    #permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = [IsAuthenticated, employee, product_manager] 
 
     def get(self, request):
         products= Product.objects.all()
@@ -111,6 +124,8 @@ class AdminListProductView(APIView):
         tags=['Admin Pannel (products)']
     )
 class AdminDetailProductView(APIView):
+    permission_classes = [IsAuthenticated, employee, product_manager] 
+
 
     def get(self, request, pk):
         
@@ -151,7 +166,7 @@ class AdminDetailProductView(APIView):
     }
 )
 class AdminAddProductView(APIView):
-   # permission_classes = [permissions.IsAdminUser]
+    permission_classes = [IsAuthenticated, employee, product_manager] 
 
     def post(self, request):
         many = isinstance(request.data, list)
@@ -170,6 +185,8 @@ class AdminAddProductView(APIView):
         
     )
 class AdminUpdataProductView(APIView):
+    permission_classes = [IsAuthenticated, employee, product_manager] 
+
     def put(self, request, pk):
         try:
             product = Product.objects.get(id=pk)
@@ -187,6 +204,8 @@ class AdminUpdataProductView(APIView):
         tags=['Admin Pannel (products)']
     )
 class AdminDeleteProductView(APIView):
+    permission_classes = [IsAuthenticated, employee, product_manager] 
+
     def delete(self, request, pk):
         try:
             product = Product.objects.get(id=pk)

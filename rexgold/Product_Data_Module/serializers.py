@@ -15,7 +15,7 @@ class AdminListViewProductserializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ['id', 'name', 'weight', 'fee_percent', 'price', 'user_creator', 'date', 'image', 'type']
+        fields = ['id', 'name', 'weight', 'fee_percent', 'price', 'image', 'type']
         read_only_fields = ['id', 'date', 'user_creator'] 
 
 

@@ -78,15 +78,12 @@ class User(AbstractUser):
     shomare_hesab = models.PositiveBigIntegerField(null=True, blank=True)
     tah_hesab_user_id = models.PositiveBigIntegerField(null=True, blank=True)
     can_invite = models.BooleanField(default=False)
-    #gold_limit = models.PositiveSmallIntegerField(null=True, blank=True)
-    #price_limit = models.FloatField(null=True, blank=True)
-    #sell_limit = models.FloatField(null=True, blank=True)
-    # user_page_permissions = models.ManyToManyField(UserPermission, blank=True)  # اگر دارید
     rasteh = models.PositiveBigIntegerField(null=True, blank=True)
     city = models.TextField(null=True, blank=True)
     birth_date = models.CharField(max_length=200, null=True, blank=True)
     is_active = models.BooleanField(default=True)
     max_gold_debt_amount = models.BigIntegerField(default=0)
+    possibel_transaction = models.BooleanField(default=False)
     group = models.ForeignKey(
         'UserGroup',  # یا Admin_Pannel_Module.UserGroup
         on_delete=models.SET_NULL,

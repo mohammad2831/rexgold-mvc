@@ -10,6 +10,9 @@ from Account_Module.models import User, UserGroup
 from Product_Data_Module.models import Product
 from . models import Access_All,Access_By_User,Access_By_UserGroup, Config_Price_Manage
 from .serializers import AdminAddConfigPriceManageViewSerializer,AdminAddProfitAllViewSerializer,AdminAddProfitUserGroupViewSerializer,AdminAddProfitUserViewSerializer,AdminGetLastProfitAllViewSerializer,AdminGetProfitUserGroupViewSerializer,AdminGetProfitUserViewSerializer
+from rest_framework.permissions import IsAuthenticated
+from Admin_Pannel_Module.permissions import employee
+from .permissions import access_all_manager,access_by_user_manager,access_by_usergroup_manager, config_price_manager
 logger = logging.getLogger(__name__)
 
 
@@ -18,6 +21,8 @@ logger = logging.getLogger(__name__)
         tags=['Admin Pannel (profit all)'],
 )
 class AdminGetConfigPriceManageView(APIView):
+    permission_classes = [IsAuthenticated, employee, config_price_manager] 
+
     def get(self, request):
             try:
                 config = Config_Price_Manage.objects.all().first()
@@ -51,6 +56,8 @@ class AdminGetConfigPriceManageView(APIView):
         request = AdminAddConfigPriceManageViewSerializer
 )
 class AdminAddConfigPriceManageView(APIView):
+    permission_classes = [IsAuthenticated, employee, config_price_manager] 
+
     def post(self, request):
         serializer = AdminAddConfigPriceManageViewSerializer(data=request.data)
         
@@ -82,12 +89,16 @@ class AdminAddConfigPriceManageView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+
+
 #profit user
 @extend_schema(
         tags=['Admin Pannel (profit user)'],
         request = AdminAddProfitUserViewSerializer
 )
 class AdmiAddProfitUserView(APIView):
+    permission_classes = [IsAuthenticated, employee, access_by_user_manager] 
+
     def post(self, request):
         serializer = AdminAddProfitUserViewSerializer(data=request.data)
         if not serializer.is_valid():
@@ -151,6 +162,8 @@ class AdmiAddProfitUserView(APIView):
         tags=['Admin Pannel (profit user)'],
 )
 class AdminGetLastProfitUserView(APIView):
+    permission_classes = [IsAuthenticated, employee, access_by_user_manager] 
+
     def get(self, request, product_id, user_id):
         # 1. دریافت آخرین رکورد
         profit = Access_By_User.objects.filter(
@@ -182,6 +195,8 @@ class AdminGetLastProfitUserView(APIView):
         tags=['Admin Pannel (profit user group)'],
 )
 class AdminGetLastProfitUserGroupView(APIView):
+    permission_classes = [IsAuthenticated, employee, Access_By_UserGroup] 
+
     def get(self, request, product_id, usergroup_id):
         # 1. دریافت آخرین رکورد
         profit = Access_By_UserGroup.objects.filter(
@@ -210,6 +225,8 @@ class AdminGetLastProfitUserGroupView(APIView):
         tags=['Admin Pannel (profit user group)'],
         request = AdminAddProfitUserGroupViewSerializer) 
 class AdmiAddProfitUserGroupView(APIView):
+    permission_classes = [IsAuthenticated, employee, Access_By_UserGroup] 
+
     def post(self, request):
         serializer = AdminAddProfitUserGroupViewSerializer(data=request.data)
         if not serializer.is_valid():
@@ -277,13 +294,15 @@ class AdmiAddProfitUserGroupView(APIView):
         tags=['Admin Pannel (profit all)'],
     )
 class AdminGetLastProfitAllView(APIView):
+    permission_classes = [IsAuthenticated, employee, access_all_manager] 
+
     def get(self, request, product_id,user_id):
        
         profit = Access_All.objects.filter(product__id=product_id).order_by('-id').first()
        
         if not profit:
             return Response(
-                {"error": f"هیچ تنظیماتی برای محصول با آیدی {pk} پیدا نشد."},
+                {"error": f"هیچ تنظیماتی برای محصول با آیدی {product_id} پیدا نشد."},
                 status=status.HTTP_404_NOT_FOUND
             )
 
@@ -302,6 +321,8 @@ class AdminGetLastProfitAllView(APIView):
         request = AdminAddProfitAllViewSerializer
     )    
 class AdmiAddProfitAllView(APIView):
+    permission_classes = [IsAuthenticated, employee, access_all_manager] 
+
     def post(self, request):
         # 1. اعتبارسنجی ورودی
         serializer = AdminAddProfitAllViewSerializer(data=request.data)

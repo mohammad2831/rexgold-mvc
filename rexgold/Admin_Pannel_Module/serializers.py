@@ -163,13 +163,25 @@ class AdminVerifyLoginViewSerializer(serializers.Serializer):
 
 
 #user 
+class AdminGetUserStatusViewSerializer(serializers.Serializer):
+    pass
+
+
+
+
+
+
+
+
+
+
 class AdminAddUserViewSerializer(serializers.ModelSerializer):
     shomare_shaba = serializers.IntegerField(required=False)
     shomare_hesab = serializers.IntegerField(required=False)
 
     class Meta:
         model = User
-        fields = ['id','username', 'phone_number', 'shomare_shaba','shomare_hesab','user_status','user_type','group','tah_hesab_user_id','is_active','max_gold_debt_amount']
+        fields = ['id','username', 'phone_number', 'shomare_shaba','shomare_hesab','user_status','user_type','group','tah_hesab_user_id','possibel_transaction','max_gold_debt_amount']
         extra_kwargs = {
             'username': {'required': True},
             'phone_number': {'required': True},
@@ -209,7 +221,7 @@ class AdminListUserViewSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'username', 'phone_number', 'user_type',
             'group', 'group_name', 'is_online',
-            'request_status', 'is_active'
+            'request_status', 'is_active', 'possibel_transaction',
         ]
     # --- ۱. واکشی کلیدها قبل از شروع سریالایزر ---
     def to_representation(self, instance):

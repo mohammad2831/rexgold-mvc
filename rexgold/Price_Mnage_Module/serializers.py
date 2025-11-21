@@ -141,7 +141,7 @@ class AdminAddProfitAllViewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Access_All
-        fields = ['product_id', 'profit_sell', 'profit_buy', 'active_for_sell', 'active_for_buy']
+        fields = ['product_id', 'profit_sell', 'profit_buy', 'active_for_sell', 'active_for_buy', 'automate_price','automate_order']
         extra_kwargs = {
             'product_id':{'required': True},
             'profit_sell': {'required': True},

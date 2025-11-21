@@ -20,6 +20,9 @@ urlpatterns = [
     path('useradd/', views.AdminAddUserView.as_view(), name='useradd'),
 
     path('serch/users/', views.UserViewSet.as_view({'get': 'list'}), name='user-list'),
+    path('user-type-choices/', views.UserTypeChoicesAPIView.as_view(), name='user-type-choices'),
+    path('user-request-status-choices/', views.UserRequestStatusChoisesAPIView.as_view(), name='user-request-status-choices'),
+    path('user-status-choices/', views.UserStatusChoicesAPIView.as_view(), name='user-status-choices'),
 
 
     #user-group
