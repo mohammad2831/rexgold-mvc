@@ -1,13 +1,20 @@
-version: '3.9'
+version: '3.8'
 
 services:
   web:
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
-    volumes:
-      - .:/app
+    container_name: rexgold_web
+    restart: unless-stopped
     ports:
       - "8000:8000"
+    volumes:
+      - .:/app
     environment:
-      - DEBUG=True
-    # اگر نیاز به متغیرهای محیطی دارید، اینجا اضافه کنید
+      - REDIS_HOST=rexgold_redis_1
+      - DOCKER_ENV=1
+    networks:
+      - rexgold_app_network
+
+networks:
+  rexgold_app_network:
+    external: true
