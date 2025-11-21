@@ -34,6 +34,7 @@ from drf_spectacular.types import OpenApiTypes
 from Account_Module.models import User, UserGroup
 from .permissions import employee, user_manager, usergroup_manager
 from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth.models import Permission
 
 from Account_Module.constants import USER_TYPE_CHOICES, USER_REQUEST_STATUS_CHOICES,USER_STATUS_CHOICES
 
@@ -792,7 +793,6 @@ class AdminLoginGenerateOTPView(APIView):
 )
 
 class AdminVerifyOTPView(APIView):
- 
     def post(self, request):
         serializer = AdminVerifyLoginViewSerializer(data=request.data)
         if not serializer.is_valid():
@@ -820,10 +820,33 @@ class AdminVerifyOTPView(APIView):
 
             refresh = RefreshToken.for_user(user)
             
+            # ==================== اضافه کردن پرمیشن‌ها و گروه‌ها ====================
+            groups = list(user.groups.values_list('name', flat=True))
+
+            # بهترین روش: استفاده از متد داخلی جنگو
+            all_permissions = user.get_all_permissions()  # شامل همه پرمیشن‌ها (مستقیم + گروهی)
+
+            # اگر فقط codename بدون پیشوند اپ بخوای (تمیزتر برای فرانت‌اند):
+            permissions_codenames = {perm.split('.')[-1] for perm in all_permissions}
+
+            # =====================================================================
+
             return Response({
-                "message": "OTP verified successfully",
-                "refresh": str(refresh),
-                "access": str(refresh.access_token),
+                "message": "ورود با موفقیت انجام شد",
+                "user": {
+                    "id": user.id,
+                    "username": user.username,
+                    "phone_number": user.phone_number,
+                    "user_status": user.user_status,
+                    "groups": groups,
+                    #"permissions": list(all_permissions),
+                    "is_superuser": user.is_superuser,
+                    "is_staff": user.is_staff,
+                },
+                "tokens": {
+                    "refresh": str(refresh),
+                    "access": str(refresh.access_token),
+                }
             }, status=status.HTTP_200_OK)
 
         return Response({"error": "Invalid phone number or expired OTP"}, status=status.HTTP_400_BAD_REQUEST)
