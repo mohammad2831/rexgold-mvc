@@ -44,6 +44,53 @@ logger = logging.getLogger(__name__)
 
 
 
+
+
+@extend_schema(
+        summary="Retrieve authenticated  admin user's information",
+        description="This endpoint returns the details of the currently authenticated user.",
+        responses={
+            200: {
+                "description": "User information retrieved successfully",
+                "example": {
+                    "id": 1,
+                    "phone_number": "+1234567890",
+                    "username": "user123",
+                    "first_name": "John",
+                    "last_name": "Doe",
+                    # سایر فیلدهای مورد نیاز
+                }
+            },
+            401: {"description": "Unauthorized. User is not authenticated."}
+        },
+        tags=['Admin Pannel (oath)']
+    )
+class AdminGetMeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    
+    def get(self, request):
+        user = request.user
+        groups = list(user.groups.values_list('name', flat=True))
+        all_permissions = user.get_all_permissions()  
+        permissions_codenames = {perm.split('.')[-1] for perm in all_permissions}
+
+        user_data = {
+            "id": user.id,
+            "phone_number": user.phone_number,
+            "username": user.username,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "groups": groups,
+            "permissions": list(permissions_codenames),
+            "is_superuser": user.is_superuser,
+            "is_staff": user.is_staff,
+        }
+        return Response(user_data, status=status.HTTP_200_OK)
+
+
+
+
 @extend_schema(
     tags=['Admin Pannel (user)'],
     parameters=[
@@ -730,7 +777,7 @@ def generate_otp(phone_number, timeout=300):
         tags=['Admin Pannel (oath)']
     )
 class AdminLoginGenerateOTPView(APIView):
-    permission_classes = [employee]
+    #permission_classes = [employee]
 
     def post(self, request):
         serializer = AdminLoginViewSerializer(data=request.data)
@@ -820,29 +867,10 @@ class AdminVerifyOTPView(APIView):
 
             refresh = RefreshToken.for_user(user)
             
-            # ==================== اضافه کردن پرمیشن‌ها و گروه‌ها ====================
-            groups = list(user.groups.values_list('name', flat=True))
-
-            # بهترین روش: استفاده از متد داخلی جنگو
-            all_permissions = user.get_all_permissions()  # شامل همه پرمیشن‌ها (مستقیم + گروهی)
-
-            # اگر فقط codename بدون پیشوند اپ بخوای (تمیزتر برای فرانت‌اند):
-            permissions_codenames = {perm.split('.')[-1] for perm in all_permissions}
-
-            # =====================================================================
+            
 
             return Response({
                 "message": "ورود با موفقیت انجام شد",
-                "user": {
-                    "id": user.id,
-                    "username": user.username,
-                    "phone_number": user.phone_number,
-                    "user_status": user.user_status,
-                    "groups": groups,
-                    #"permissions": list(all_permissions),
-                    "is_superuser": user.is_superuser,
-                    "is_staff": user.is_staff,
-                },
                 "tokens": {
                     "refresh": str(refresh),
                     "access": str(refresh.access_token),

@@ -10,6 +10,7 @@ urlpatterns = [
     path('verify/signup/', views.SignupVerifyOtpView.as_view(), name='verify-signup-otp'),
     path('refreshToken', views.RefreshAccessTokenView.as_view(), name='refresh-token'),
     path('logout/', views.LogoutView.as_view(), name='logout'),
+     
 
 
 

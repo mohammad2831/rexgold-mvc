@@ -33,6 +33,8 @@ urlpatterns = [
     path('usergroupdetail/<int:pk>/', views.AdminDetailUserGroupView().as_view(), name='usergroupdetail'),
 
 
+    path('Admin/getme/', views.AdminGetMeView.as_view(), name='get-me' ),
+
 
 
     path('order/', include('Order_Module.urls')),

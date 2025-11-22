@@ -6,12 +6,12 @@ class product_manager(BasePermission):
     def has_permission(self, request, view):
         if not request.user.is_authenticated:
             return False
-        return request.user.groups.filter(name='product-model-manager').exists()
+        return request.user.groups.filter(name='procuct-model-manager').exists()
     
 
 class category_manager(BasePermission):
     def has_permission(self, request, view):
         if not request.user.is_authenticated:
             return False
-        return request.user.groups.filter(name='catgory-model-manager').exists()
+        return request.user.groups.filter(name='category-model-manager').exists()
     

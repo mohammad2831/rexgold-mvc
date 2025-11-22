@@ -22,14 +22,13 @@ import uuid
 from rest_framework_simplejwt.exceptions import TokenError
 from django.core.cache import cache
 import time
+from Admin_Pannel_Module.permissions import employee
 
 ONLINE_USERS_SET_KEY = "online:users:set"
 USER_ONLINE_KEY = lambda uid: f"online:user:{uid}"
 
 USER_ONLINE_KEY_PREFIX = "online_user_"
 ONLINE_TIMEOUT_SECONDS = 900
-
-
 
 
 

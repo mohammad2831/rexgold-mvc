@@ -108,7 +108,7 @@ class AdminUpdateCategoryView(APIView):
 
     )
 class AdminListProductView(APIView):
-    #authentication_classes = [JWTAuthentication]
+    
     permission_classes = [IsAuthenticated, employee, product_manager] 
 
     def get(self, request):
