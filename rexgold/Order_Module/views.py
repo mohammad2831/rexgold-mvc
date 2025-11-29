@@ -104,6 +104,8 @@ class OrderViewSet(viewsets.ModelViewSet):
 
         return queryset.order_by('-created_at')
 
+
+
 @extend_schema(
         tags=['Admin Pannel (order)'],
         request=AdminAddOrderViewSerializer,
@@ -195,10 +197,6 @@ class AdminAddOrderView(APIView):
                 "jalali_date": jalali_date
             }
         }, status=status.HTTP_201_CREATED)
-
-
-
-
 
 
 

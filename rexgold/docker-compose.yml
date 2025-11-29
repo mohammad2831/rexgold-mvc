@@ -1,20 +1,22 @@
-version: '3.8'
+# فایل: /path/to/rexgol_project/docker-compose.yml
 
 services:
   web:
     build: .
-    container_name: rexgold_web
+    container_name: rexgol_main_web
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "8000:8000"                  # لوکال:8000 → داخل کانتینر:8000
     volumes:
       - .:/app
     environment:
-      - REDIS_HOST=rexgold_redis_1
+      - DEBUG=True
       - DOCKER_ENV=1
     networks:
-      - rexgold_app_network
+      - redis_net
+    # depends_on لازم نیست — چون از شبکه مشترک استفاده می‌کنیم
 
 networks:
-  rexgold_app_network:
+  redis_net:
+    name: redis_backend_network      # دقیقاً همون شبکه سه ردیس!
     external: true

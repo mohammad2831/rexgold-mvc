@@ -1,27 +1,30 @@
-# استفاده از پایتون سبک
+# Dockerfile — نسخه حرفه‌ای و بهینه
 FROM python:3.11-slim
 
 # تنظیمات محیطی
 ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1
+    PYTHONDONTWRITEBYTECODE=1 \
+    DOCKER_ENV=1
 
-# نصب وابستگی‌های سیستم
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    && rm -rf /var/lib/apt/lists/*
+# نصب وابستگی‌های سیستمی
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gcc && \
+    rm -rf /var/lib/apt/lists/*
 
 # دایرکتوری کاری
 WORKDIR /app
 
-# کپی و نصب پکیج‌ها
+# کپی و نصب پکیج‌ها (اول requirements → بهتر کش می‌شه)
 COPY requirements.txt .
-RUN pip install --upgrade pip && pip install -r requirements.txt
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir gunicorn
 
-# کپی کل پروژه
+# کپی پروژه
 COPY . .
 
-# پورت 8000
+# پورت
 EXPOSE 8000
 
-# اجرای سرور توسعه
+# استفاده از gunicorn در تولید (runserver فقط برای توسعه)
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

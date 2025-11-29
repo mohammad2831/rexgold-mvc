@@ -1,7 +1,7 @@
 from pathlib import Path
 from jdatetime import timedelta
 import os
-
+import redis
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -136,15 +136,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 
-REDIS_HOST = os.getenv('REDIS_HOST', 'localhost')
-
-CELERY_BROKER_URL = f'redis://{REDIS_HOST}:6379/0'
-CELERY_RESULT_BACKEND = f'redis://{REDIS_HOST}:6379/0'
-
+# ──────────────────────────────────────────────────────────────
+# ۱. کش + Channel Layers → redis-cache
+# ──────────────────────────────────────────────────────────────
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"redis://{REDIS_HOST}:6379/1",
+        "LOCATION": "redis://redis-cache:6379/0",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
@@ -152,36 +150,47 @@ CACHES = {
     }
 }
 
-
-
-
-#CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
-#CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-
-
-ONLINE_TIMEOUT_SECONDS = 15 * 60 # 900 ثانیه (15 دقیقه)
-USER_ONLINE_KEY_PREFIX = "online_user_"
-'''
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",  # localhost:6379، دیتابیس 1
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        },
-        "KEY_PREFIX": "mykey:",  # اختیاری - اگر بخواهید پیشوند اضافه کنید (توصیه: فعلاً حذف کنید)
-    }
-}
-'''
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {"hosts": [("127.0.0.1", 6379)]},
-    }
+        "CONFIG": {
+            "hosts": ["redis://redis-cache:6379/1"],  # دیتابیس 1 برای Channel Layers
+        },
+    },
 }
+
+# ──────────────────────────────────────────────────────────────
+# ۲. اتصال مستقیم به redis-price برای دریافت قیمت زنده (pub/sub)
+# ──────────────────────────────────────────────────────────────
+REDIS_PRICE = redis.Redis(
+    host='redis-price',
+    port=6379,
+    db=0,
+    decode_responses=True,
+    socket_keepalive=True,
+    retry_on_timeout=True,
+    health_check_interval=30,
+)
+
+# اسم چنل قیمت — حتماً با پروژه اول یکسان باشه!
+CHANNEL_PRICE_LIVE = "prices:livedata"
+
+# ──────────────────────────────────────────────────────────────
+# ۳. سلری (اگر دارید) → redis-celery
+# ──────────────────────────────────────────────────────────────
+CELERY_BROKER_URL = "redis://redis-celery:6379/0"
+CELERY_RESULT_BACKEND = "redis://redis-celery:6379/1"
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = "Asia/Tehran"
+CELERY_ENABLE_UTC = False
+
+# ──────────────────────────────────────────────────────────────
+# تنظیمات آنلاین کاربر (در redis-cache)
+# ──────────────────────────────────────────────────────────────
+ONLINE_TIMEOUT_SECONDS = 15 * 60
+USER_ONLINE_KEY_PREFIX = "online_user_"
 
 
 

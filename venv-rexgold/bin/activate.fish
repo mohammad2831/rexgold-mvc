@@ -33,7 +33,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV /media/mohammad/project/rexgold/venv-rexgold
+set -gx VIRTUAL_ENV /media/mohammad/project2/rexgold/venv-rexgold
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/"bin $PATH

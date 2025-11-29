@@ -1,4 +1,4 @@
-#!/media/mohammad/project/rexgold/venv-rexgold/bin/python3
+#!/media/mohammad/project2/rexgold/venv-rexgold/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys
